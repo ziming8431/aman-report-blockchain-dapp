@@ -913,7 +913,7 @@ const Home: NextPage = () => {
                            }}
                            whileTap={{ scale: 0.95 }}
                            onClick={() => setSelectedFilter(category)}
-                           className={`relative px-6 py-3 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden group ${
+                           className={`relative px-6 py-1 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden group ${
                              selectedFilter === category
                                ? "bg-gradient-to-r from-[#ffbe4c] via-[#e74732] to-[#cd3001] text-white shadow-xl border-2 border-orange-300"
                                : "bg-white/80 backdrop-blur-sm text-gray-700 border-2 border-gray-200 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 hover:border-orange-300 hover:text-orange-700"

@@ -7,6 +7,38 @@
   --animate-pulse-fast: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* Custom animations for floating blobs */
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.animation-delay-6000 {
+  animation-delay: 6s;
+}
+
 @plugin "daisyui" {
   themes:
     light,
@@ -16,12 +48,12 @@
 @plugin "daisyui/theme" {
   name: "light";
 
-  --color-primary: #93bbfb;
-  --color-primary-content: #212638;
-  --color-secondary: #dae8ff;
-  --color-secondary-content: #212638;
-  --color-accent: #93bbfb;
-  --color-accent-content: #212638;
+  --color-primary: #ffbe4c;
+  --color-primary-content: #ffffff;
+  --color-secondary: #e74732;
+  --color-secondary-content: #ffffff;
+  --color-accent: #cd3001;
+  --color-accent-content: #ffffff;
   --color-neutral: #212638;
   --color-neutral-content: #ffffff;
   --color-base-100: #ffffff;
@@ -41,11 +73,11 @@
 @plugin "daisyui/theme" {
   name: "dark";
 
-  --color-primary: #212638;
-  --color-primary-content: #f9fbff;
-  --color-secondary: #323f61;
+  --color-primary: #ffbe4c;
+  --color-primary-content: #212638;
+  --color-secondary: #e74732;
   --color-secondary-content: #f9fbff;
-  --color-accent: #4969a6;
+  --color-accent: #cd3001;
   --color-accent-content: #f9fbff;
   --color-neutral: #f9fbff;
   --color-neutral-content: #385183;

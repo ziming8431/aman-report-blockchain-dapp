@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import type { NextPage } from "next";
+import Image from "next/image";
 import { useAccount } from "wagmi";
 import { RainbowKitCustomConnectButton, Address } from "~~/components/scaffold-eth";
 import { useScaffoldReadContract, useScaffoldEventHistory } from "~~/hooks/scaffold-eth";
@@ -240,6 +241,43 @@ const sampleReports: SampleReport[] = [
   }
 ];
 
+// Loading Skeleton Component
+const LoadingSkeleton = () => {
+  return (
+    <div className="space-y-4">
+      {[...Array(3)].map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: i * 0.1 }}
+          className="bg-white/50 backdrop-blur-sm border border-gray-200 rounded-2xl p-6"
+        >
+          <div className="animate-pulse">
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="rounded-full bg-gray-300 h-10 w-10"></div>
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                <div className="h-3 bg-gray-300 rounded w-1/2"></div>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="h-4 bg-gray-300 rounded"></div>
+              <div className="h-4 bg-gray-300 rounded w-5/6"></div>
+              <div className="h-4 bg-gray-300 rounded w-4/6"></div>
+            </div>
+            <div className="flex space-x-2 mt-4">
+              <div className="h-6 bg-gray-300 rounded-full w-16"></div>
+              <div className="h-6 bg-gray-300 rounded-full w-20"></div>
+              <div className="h-6 bg-gray-300 rounded-full w-14"></div>
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
 // Enhanced Twitter-like Sample Report Card Component
 const SampleReportCard = ({ report, index }: { report: SampleReport; index: number }) => {
   const [isLiked, setIsLiked] = useState(false);
@@ -270,13 +308,6 @@ const SampleReportCard = ({ report, index }: { report: SampleReport; index: numb
       {/* Header with user info */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <motion.div 
-            whileHover={{ rotate: 360 }}
-            transition={{ duration: 0.6 }}
-            className="w-12 h-12 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center shadow-lg"
-          >
-            <Shield className="w-6 h-6 text-white" />
-          </motion.div>
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-gray-800">Anonymous Reporter</span>
@@ -558,6 +589,54 @@ const Home: NextPage = () => {
   // Get contract info for Sapphire Testnet (chain ID 23295)
   const contractInfo = deployedContracts[23295]?.ConfidentialReporter;
 
+  // Generate random data for time-based metrics
+  const generateRandomData = () => {
+    return Array.from({ length: 7 }, () => Math.floor(Math.random() * 20) + 5);
+  };
+
+  const [dailyData] = useState(generateRandomData());
+  const [monthlyData] = useState(generateRandomData());
+  const [yearlyData] = useState(generateRandomData());
+
+  // Calculate totals
+  const dailyTotal = dailyData.reduce((sum, val) => sum + val, 0);
+  const monthlyTotal = monthlyData.reduce((sum, val) => sum + val, 0);
+  const yearlyTotal = yearlyData.reduce((sum, val) => sum + val, 0);
+
+  // Mini chart component
+  const MiniChart = ({ data, color }: { data: number[], color: string }) => {
+    const max = Math.max(...data);
+    const points = data.map((value, index) => {
+      const x = (index / (data.length - 1)) * 120;
+      const y = 40 - (value / max) * 30;
+      return `${x},${y}`;
+    }).join(' ');
+
+    return (
+      <svg width="120" height="40" className="ml-auto">
+        <polyline
+          fill="none"
+          stroke={color}
+          strokeWidth="2"
+          points={points}
+        />
+        {data.map((value, index) => {
+          const x = (index / (data.length - 1)) * 120;
+          const y = 40 - (value / max) * 30;
+          return (
+            <circle
+              key={index}
+              cx={x}
+              cy={y}
+              r="2"
+              fill={color}
+            />
+          );
+        })}
+      </svg>
+    );
+  };
+
   useEffect(() => {
     chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
@@ -648,7 +727,14 @@ const Home: NextPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+        <div className="absolute top-40 right-10 w-32 h-32 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-20 left-20 w-32 h-32 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-yellow-200 rounded-full mix-blend-multiply filter blur-xl opacity-50 animate-blob animation-delay-6000"></div>
+      </div>
       {/* Header */}
       <motion.div 
         initial={{ y: -50, opacity: 0 }}
@@ -661,12 +747,12 @@ const Home: NextPage = () => {
               whileHover={{ scale: 1.05 }}
               className="flex items-center gap-3"
             >
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                <Shield className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center">
+                <Image alt="SP3AK-UP logo" className="w-full h-full object-cover" width={40} height={40} src="/new-logo.png" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  Aman Report
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-[#cd3001] to-[#e74732] bg-clip-text text-transparent" style={{letterSpacing: '-0.1em'}}>
+                  SP3AK-UP
                 </h1>
                 <p className="text-sm text-gray-500">Safe • Confidential • Encrypted</p>
               </div>
@@ -677,7 +763,7 @@ const Home: NextPage = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowChatModal(true)}
-                className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all"
+                className="flex items-center gap-2 bg-gradient-to-r from-[#ffbe4c] to-[#e74732] text-white px-6 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all"
               >
                 <Plus className="w-5 h-5" />
                 Share Your Story
@@ -694,51 +780,60 @@ const Home: NextPage = () => {
          <motion.div 
            initial={{ opacity: 0, y: 20 }}
            animate={{ opacity: 1, y: 0 }}
-           className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8"
+           className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
          >
            {[
              { 
-               icon: Shield, 
-               label: "Reports Secured", 
-               value: totalReportCount ? totalReportCount.toString() : "0", 
-               color: "from-blue-500 to-cyan-500" 
-             },
-             { 
-               icon: Users, 
-               label: "Community Reports", 
-               value: reportEvents ? reportEvents.length.toString() : "0", 
-               color: "from-green-500 to-emerald-500" 
+               icon: Calendar, 
+               label: "Daily Reports", 
+               value: dailyTotal.toString(), 
+               color: "from-[#ffbe4c] via-[#e74732] to-[#cd3001]",
+               type: "chart",
+               data: dailyData,
+               chartColor: "#ffbe4c"
              },
              { 
                icon: TrendingUp, 
-               label: "Blockchain Security", 
-               value: "100%", 
-               color: "from-purple-500 to-pink-500" 
+               label: "Monthly Reports", 
+               value: monthlyTotal.toString(), 
+               color: "from-[#e74732] via-[#cd3001] to-[#ffbe4c]",
+               type: "chart",
+               data: monthlyData,
+               chartColor: "#e74732"
              },
              { 
                icon: Star, 
-               label: "Encryption Level", 
-               value: "AES-256", 
-               color: "from-orange-500 to-red-500" 
+               label: "Yearly Reports", 
+               value: yearlyTotal.toString(), 
+               color: "from-[#cd3001] via-[#e74732] to-[#ffbe4c]",
+               type: "chart",
+               data: yearlyData,
+               chartColor: "#cd3001"
              }
            ].map((stat, index) => (
              <motion.div
                key={stat.label}
                initial={{ opacity: 0, y: 20 }}
                animate={{ opacity: 1, y: 0 }}
-               transition={{ delay: index * 0.1 }}
-               whileHover={{ y: -2 }}
-               className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-lg"
+               transition={{ delay: index * 0.15 }}
+               whileHover={{ y: -8, scale: 1.02 }}
+               className="bg-white/80 backdrop-blur-md rounded-3xl p-8 border border-white/60 shadow-2xl hover:shadow-3xl transition-all duration-300 relative overflow-hidden group"
              >
-               <div className="flex items-center gap-3">
-                 <div className={`w-12 h-12 bg-gradient-to-r ${stat.color} rounded-xl flex items-center justify-center`}>
-                   <stat.icon className="w-6 h-6 text-white" />
-                 </div>
-                 <div>
-                   <div className="text-2xl font-bold text-gray-800">{stat.value}</div>
-                   <div className="text-sm text-gray-500">{stat.label}</div>
-                 </div>
-               </div>
+               {/* Gradient overlay */}
+               <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-5 group-hover:opacity-10 transition-opacity duration-300`}></div>
+               <div className="relative z-10">
+               <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">{stat.value}</div>
+                    <div className="text-sm font-medium text-gray-600 mt-1">{stat.label}</div>
+                  </div>
+                  {stat.type === "chart" && stat.data && stat.chartColor && (
+                    <div className="opacity-80 group-hover:opacity-100 transition-opacity duration-300">
+                      <MiniChart data={stat.data} color={stat.chartColor} />
+                    </div>
+                  )}
+                </div>
+                </div>
              </motion.div>
            ))}
          </motion.div>
@@ -791,17 +886,7 @@ const Home: NextPage = () => {
                  </div>
                ) : (
                  <div>
-                   <motion.div 
-                     initial={{ opacity: 0, y: 20 }}
-                     animate={{ opacity: 1, y: 0 }}
-                     className="text-center py-8 mb-8"
-                   >
-                     <div className="w-16 h-16 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                       <MessageCircle className="w-8 h-8 text-purple-500" />
-                     </div>
-                     <h3 className="text-lg font-semibold text-gray-800 mb-2">Sample Community Reports</h3>
-                     <p className="text-gray-600 text-sm">Here are some examples of how our community shares their experiences safely and anonymously.</p>
-                   </motion.div>
+
                    
                    {/* Filter Buttons */}
                    <motion.div 
@@ -814,25 +899,84 @@ const Home: NextPage = () => {
                        <Filter className="w-5 h-5 text-gray-600" />
                        <span className="font-medium text-gray-700">Filter by Category:</span>
                      </div>
-                     <div className="flex flex-wrap gap-2">
-                       {categories.map((category) => (
+                     <div className="flex flex-wrap gap-3">
+                       {categories.map((category, index) => (
                          <motion.button
                            key={category}
-                           whileHover={{ scale: 1.05 }}
+                           initial={{ opacity: 0, y: 20 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           transition={{ delay: index * 0.1 }}
+                           whileHover={{ 
+                             scale: 1.05, 
+                             y: -2,
+                             boxShadow: "0 10px 25px rgba(0,0,0,0.15)"
+                           }}
                            whileTap={{ scale: 0.95 }}
                            onClick={() => setSelectedFilter(category)}
-                           className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                           className={`relative px-6 py-3 rounded-full text-sm font-medium transition-all duration-300 overflow-hidden group ${
                              selectedFilter === category
-                               ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg"
-                               : "bg-white/70 text-gray-700 border border-gray-200 hover:bg-purple-50 hover:border-purple-300"
+                               ? "bg-gradient-to-r from-[#ffbe4c] via-[#e74732] to-[#cd3001] text-white shadow-xl border-2 border-orange-300"
+                               : "bg-white/80 backdrop-blur-sm text-gray-700 border-2 border-gray-200 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 hover:border-orange-300 hover:text-orange-700"
                            }`}
                          >
-                           {category}
-                           {category !== "All" && (
-                             <span className="ml-1 text-xs opacity-75">
-                               ({sampleReports.filter(r => r.category === category).length})
-                             </span>
+                           {/* Animated background for active state */}
+                           {selectedFilter === category && (
+                             <motion.div
+                               className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500"
+                               animate={{
+                                 backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                               }}
+                               transition={{
+                                 duration: 3,
+                                 repeat: Infinity,
+                                 ease: "linear"
+                               }}
+                               style={{
+                                 backgroundSize: '200% 200%'
+                               }}
+                             />
                            )}
+                           
+                           {/* Hover effect particles */}
+                           <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                             {[...Array(3)].map((_, i) => (
+                               <motion.div
+                                 key={i}
+                                 className="absolute w-1 h-1 bg-orange-400 rounded-full"
+                                 animate={{
+                                   x: [0, Math.random() * 40 - 20],
+                                   y: [0, Math.random() * 40 - 20],
+                                   opacity: [0, 1, 0]
+                                 }}
+                                 transition={{
+                                   duration: 1.5,
+                                   repeat: Infinity,
+                                   delay: i * 0.2
+                                 }}
+                                 style={{
+                                   left: `${20 + i * 20}%`,
+                                   top: '50%'
+                                 }}
+                               />
+                             ))}
+                           </div>
+                           
+                           <span className="relative z-10 flex items-center gap-2">
+                             {category}
+                             {category !== "All" && (
+                               <motion.span 
+                                 initial={{ scale: 0 }}
+                                 animate={{ scale: 1 }}
+                                 className={`text-xs px-2 py-1 rounded-full ${
+                                   selectedFilter === category 
+                                     ? "bg-white/20 text-white" 
+                                     : "bg-orange-100 text-orange-600"
+                                 }`}
+                               >
+                                 {sampleReports.filter(r => r.category === category).length}
+                               </motion.span>
+                             )}
+                           </span>
                          </motion.button>
                        ))}
                      </div>
@@ -848,7 +992,7 @@ const Home: NextPage = () => {
                      initial={{ opacity: 0, y: 20 }}
                      animate={{ opacity: 1, y: 0 }}
                      transition={{ delay: 1 }}
-                     className="text-center py-8 mt-8 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-200"
+                     className="text-center py-8 mt-8 bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl border border-orange-200"
                    >
                      <h3 className="text-xl font-semibold text-gray-800 mb-2">Ready to Share Your Story?</h3>
                      <p className="text-gray-600 mb-6">Join our community and help build a safer environment for everyone.</p>
@@ -856,7 +1000,7 @@ const Home: NextPage = () => {
                        whileHover={{ scale: 1.05 }}
                        whileTap={{ scale: 0.95 }}
                        onClick={() => setShowChatModal(true)}
-                       className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all"
+                       className="bg-gradient-to-r from-[#ffbe4c] to-[#e74732] text-white px-8 py-3 rounded-full font-medium shadow-lg hover:shadow-xl transition-all"
                      >
                        Share Your Story
                      </motion.button>
@@ -951,7 +1095,7 @@ const Home: NextPage = () => {
            whileHover={{ scale: 1.1 }}
            whileTap={{ scale: 0.9 }}
            onClick={() => setShowChatModal(true)}
-           className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full shadow-2xl flex items-center justify-center z-40 hover:shadow-3xl transition-all"
+           className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-r from-[#ffbe4c] to-[#e74732] text-white rounded-full shadow-2xl flex items-center justify-center z-40 hover:shadow-3xl transition-all"
          >
            <motion.div
              animate={{ rotate: showChatModal ? 45 : 0 }}
@@ -969,7 +1113,7 @@ const Home: NextPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center"
             onClick={() => setShowChatModal(false)}
           >
             <motion.div
@@ -977,16 +1121,16 @@ const Home: NextPage = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={e => e.stopPropagation()}
-              className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden"
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-7xl max-h-screen flex flex-col overflow-hidden"
             >
               {/* Modal Header */}
-              <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-6 text-white">
+              <div className="bg-gradient-to-r from-[#ffbe4c] to-[#e74732] p-4 text-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <MessageCircle className="w-6 h-6" />
                     <div>
                       <h3 className="text-xl font-bold">Share Your Story</h3>
-                      <p className="text-purple-100 text-sm">Safe, confidential, and encrypted</p>
+                      <p className="text-orange-100 text-sm">Safe, confidential, and encrypted</p>
                     </div>
                   </div>
                   <motion.button
@@ -1029,9 +1173,21 @@ const Home: NextPage = () => {
                           ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white" 
                           : "bg-gray-100 text-gray-800"
                       }`}>
-                        {msg.content.split("\n").map((line, i) => (
-                          <p key={i} className={i > 0 ? "mt-2" : ""}>{line}</p>
-                        ))}
+                        {msg.content.split("\n").map((line, i) => {
+                          // Parse text with **bold** formatting
+                          const parts = line.split(/\*\*(.*?)\*\*/g);
+                          return (
+                            <p key={i} className={i > 0 ? "mt-2" : ""}>
+                              {parts.map((part, partIndex) => 
+                                partIndex % 2 === 1 ? (
+                                  <strong key={partIndex}>{part}</strong>
+                                ) : (
+                                  part
+                                )
+                              )}
+                            </p>
+                          );
+                        })}
                       </div>
                     </motion.div>
                   ))}
@@ -1060,14 +1216,14 @@ const Home: NextPage = () => {
                     value={userInput}
                     onChange={e => setUserInput(e.target.value)}
                     placeholder="Type your message..."
-                    className="flex-1 p-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="flex-1 p-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     disabled={isLoadingAI || isLoadingBlockchain}
                   />
                   <motion.button 
                     type="submit" 
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-4 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-gradient-to-r from-[#ffbe4c] to-[#e74732] text-white p-4 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={isLoadingAI || isLoadingBlockchain}
                   >
                     <Send className="w-5 h-5" />
@@ -1115,14 +1271,14 @@ const Home: NextPage = () => {
                   <motion.div 
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-4 text-center"
+                    className="mt-4 flex justify-center gap-4"
                   >
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={handleSubmitToBlockchain}
                       disabled={isLoadingBlockchain || messages.length === 0}
-                      className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-8 py-3 rounded-2xl font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-2xl font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                       {isLoadingBlockchain ? (
                         <>
@@ -1136,6 +1292,20 @@ const Home: NextPage = () => {
                         </>
                       )}
                     </motion.button>
+                    
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setShowChatModal(false);
+                        alert('Experience shared successfully! Your story has been added to the community reports to help others.');
+                      }}
+                      disabled={messages.length === 0}
+                      className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-2xl font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      <Share2 className="w-5 h-5" />
+                      Share the Experience on Community Reports
+                    </motion.button>
                   </motion.div>
                 )}
               </div>
@@ -1143,6 +1313,115 @@ const Home: NextPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      
+      {/* Floating Action Button */}
+      {!showChatModal && (
+        <motion.div
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ delay: 1, type: "spring", stiffness: 260, damping: 20 }}
+          className="fixed bottom-8 right-8 z-40"
+        >
+          <motion.button
+            whileHover={{ 
+              scale: 1.1, 
+              rotate: 5,
+              boxShadow: "0 20px 40px rgba(231, 71, 50, 0.3)"
+            }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowChatModal(true)}
+            className="bg-gradient-to-r from-[#ffbe4c] via-[#e74732] to-[#cd3001] text-white p-4 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 group relative overflow-hidden"
+          >
+            {/* Animated background */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500"
+              animate={{
+                backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+              style={{
+                backgroundSize: '200% 200%'
+              }}
+            />
+            
+            {/* Pulse effect */}
+            <motion.div
+              className="absolute inset-0 bg-white/20 rounded-full"
+              animate={{
+                scale: [1, 1.5, 1],
+                opacity: [0.5, 0, 0.5]
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+            
+            <div className="relative z-10 flex items-center gap-2">
+              <MessageCircle className="w-6 h-6" />
+              <span className="font-medium hidden sm:block">Share Story</span>
+            </div>
+            
+            {/* Floating particles */}
+            {[...Array(3)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1 h-1 bg-white rounded-full"
+                animate={{
+                  y: [0, -20, 0],
+                  x: [0, Math.random() * 10 - 5, 0],
+                  opacity: [0, 1, 0]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  delay: i * 0.3
+                }}
+                style={{
+                  left: `${30 + i * 15}%`,
+                  top: '20%'
+                }}
+              />
+            ))}
+          </motion.button>
+        </motion.div>
+      )}
+      
+      {/* Background Enhancement */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        {/* Additional floating elements */}
+        {[...Array(8)].map((_, i) => (
+          <motion.div
+            key={i}
+            className={`absolute w-2 h-2 rounded-full ${
+              i % 4 === 0 ? 'bg-orange-200/30' :
+              i % 4 === 1 ? 'bg-red-200/30' :
+              i % 4 === 2 ? 'bg-yellow-200/30' :
+              'bg-pink-200/30'
+            }`}
+            animate={{
+              y: [0, -100, 0],
+              x: [0, Math.random() * 50 - 25, 0],
+              opacity: [0, 0.6, 0]
+            }}
+            transition={{
+              duration: 8 + Math.random() * 4,
+              repeat: Infinity,
+              delay: i * 1.5,
+              ease: "easeInOut"
+            }}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 };

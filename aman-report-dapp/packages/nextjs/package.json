@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.1.5",
+    "@oasisprotocol/sapphire-ethers-v6": "^6.0.1",
     "@rainbow-me/rainbowkit": "2.2.7",
     "@tanstack/react-query": "^5.59.15",
     "@uniswap/sdk-core": "^5.8.2",
@@ -24,7 +25,9 @@
     "blo": "^1.2.0",
     "burner-connector": "0.0.16",
     "daisyui": "^5.0.9",
+    "framer-motion": "^12.23.12",
     "kubo-rpc-client": "^5.0.2",
+    "lucide-react": "^0.539.0",
     "next": "^15.2.3",
     "next-nprogress-bar": "^2.3.13",
     "next-themes": "^0.3.0",

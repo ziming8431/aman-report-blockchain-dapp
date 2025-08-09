@@ -11,7 +11,7 @@ import { submitGaslessReport, isGaslessAvailable, getGaslessTransactionFee } fro
 import { Contract } from "ethers";
 import deployedContracts from "~~/contracts/deployedContracts";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, Lock, Shield, Heart, AlertTriangle, X, Send, Plus, Users, Calendar, Eye, Share2, Bookmark, MoreHorizontal, Zap, Star, TrendingUp, Filter } from "lucide-react";
+import { MessageCircle, Lock, Shield, Heart, AlertTriangle, X, Send, Plus, Users, Calendar, Eye, Share2, Bookmark, MoreHorizontal, Zap, Star, TrendingUp, Filter, Activity, BarChart3, FileText, CheckCircle } from "lucide-react";
 
 type Message = {
   role: "user" | "assistant";
@@ -1011,60 +1011,212 @@ const Home: NextPage = () => {
 
             {/* Sidebar */}
             <div className="space-y-6">
+              {/* Trending Topics */}
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="bg-gradient-to-br from-purple-50 to-pink-50 backdrop-blur-sm rounded-2xl p-6 border border-purple-200/50 shadow-lg hover:shadow-xl transition-all"
+              >
+                <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-purple-500" />
+                  Trending Topics
+                </h3>
+                <div className="space-y-3">
+                  {[
+                    { tag: "#WorkplaceHarassment", count: 127, trend: "+12%" },
+                    { tag: "#CyberBullying", count: 89, trend: "+8%" },
+                    { tag: "#DiscriminationReport", count: 76, trend: "+15%" },
+                    { tag: "#SafetyFirst", count: 54, trend: "+5%" }
+                  ].map((topic, index) => (
+                    <motion.div 
+                      key={topic.tag}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="flex items-center justify-between p-3 bg-white/60 rounded-lg border border-purple-100 hover:bg-white/80 transition-all cursor-pointer group"
+                    >
+                      <div>
+                        <div className="font-medium text-purple-800 group-hover:text-purple-900">{topic.tag}</div>
+                        <div className="text-sm text-gray-600">{topic.count} reports</div>
+                      </div>
+                      <div className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                        {topic.trend}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Live Activity Feed */}
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 }}
+                className="bg-gradient-to-br from-blue-50 to-cyan-50 backdrop-blur-sm rounded-2xl p-6 border border-blue-200/50 shadow-lg hover:shadow-xl transition-all"
+              >
+                <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-blue-500" />
+                  Live Activity
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                </h3>
+                <div className="space-y-3">
+                  {[
+                    { action: "New report submitted", time: "2 min ago", type: "report" },
+                    { action: "Community support given", time: "5 min ago", type: "support" },
+                    { action: "Report verified", time: "8 min ago", type: "verify" },
+                    { action: "New user joined", time: "12 min ago", type: "user" }
+                  ].map((activity, index) => (
+                    <motion.div 
+                      key={index}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="flex items-center gap-3 p-3 bg-white/60 rounded-lg border border-blue-100 hover:bg-white/80 transition-all"
+                    >
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        activity.type === 'report' ? 'bg-orange-100 text-orange-600' :
+                        activity.type === 'support' ? 'bg-green-100 text-green-600' :
+                        activity.type === 'verify' ? 'bg-blue-100 text-blue-600' :
+                        'bg-purple-100 text-purple-600'
+                      }`}>
+                        {activity.type === 'report' ? <FileText className="w-4 h-4" /> :
+                         activity.type === 'support' ? <Heart className="w-4 h-4" /> :
+                         activity.type === 'verify' ? <CheckCircle className="w-4 h-4" /> :
+                         <Users className="w-4 h-4" />}
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-gray-800">{activity.action}</div>
+                        <div className="text-xs text-gray-500">{activity.time}</div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Quick Stats Dashboard */}
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className="bg-gradient-to-br from-green-50 to-emerald-50 backdrop-blur-sm rounded-2xl p-6 border border-green-200/50 shadow-lg hover:shadow-xl transition-all"
+              >
+                <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-green-500" />
+                  Impact Stats
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: "Reports Resolved", value: "1,247", change: "+23%", color: "green" },
+                    { label: "Lives Helped", value: "892", change: "+18%", color: "blue" },
+                    { label: "Active Supporters", value: "456", change: "+31%", color: "purple" },
+                    { label: "Success Rate", value: "94%", change: "+2%", color: "orange" }
+                  ].map((stat, index) => (
+                    <motion.div 
+                      key={stat.label}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="p-3 bg-white/60 rounded-lg border border-green-100 hover:bg-white/80 transition-all text-center"
+                    >
+                      <div className={`text-2xl font-bold ${
+                        stat.color === 'green' ? 'text-green-600' :
+                        stat.color === 'blue' ? 'text-blue-600' :
+                        stat.color === 'purple' ? 'text-purple-600' :
+                        'text-orange-600'
+                      }`}>{stat.value}</div>
+                      <div className="text-xs text-gray-600 mb-1">{stat.label}</div>
+                      <div className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                        {stat.change}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+
               {/* Support Resources */}
               <motion.div 
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-lg"
+                transition={{ delay: 0.3 }}
+                className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-lg hover:shadow-xl transition-all"
               >
                 <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                   <Heart className="w-5 h-5 text-pink-500" />
                   Support Resources
                 </h3>
                 <div className="space-y-3">
-                  <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                  <motion.div 
+                    whileHover={{ scale: 1.02 }}
+                    className="p-3 bg-red-50 rounded-lg border border-red-200 cursor-pointer hover:bg-red-100 transition-all"
+                  >
                     <div className="font-medium text-red-800">Emergency Help</div>
                     <div className="text-sm text-red-600">WAO: +603 3000 8858</div>
-                  </div>
-                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  </motion.div>
+                  <motion.div 
+                    whileHover={{ scale: 1.02 }}
+                    className="p-3 bg-blue-50 rounded-lg border border-blue-200 cursor-pointer hover:bg-blue-100 transition-all"
+                  >
                     <div className="font-medium text-blue-800">Online Counseling</div>
                     <div className="text-sm text-blue-600">Available 24/7</div>
-                  </div>
-                  <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                  </motion.div>
+                  <motion.div 
+                    whileHover={{ scale: 1.02 }}
+                    className="p-3 bg-green-50 rounded-lg border border-green-200 cursor-pointer hover:bg-green-100 transition-all"
+                  >
                     <div className="font-medium text-green-800">Legal Support</div>
                     <div className="text-sm text-green-600">Free consultation</div>
-                  </div>
+                  </motion.div>
                 </div>
               </motion.div>
 
-              {/* Community Guidelines */}
+              {/* Privacy & Security */}
               <motion.div 
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-                className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-lg"
+                transition={{ delay: 0.4 }}
+                className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-lg hover:shadow-xl transition-all"
               >
                 <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                   <Lock className="w-5 h-5 text-purple-500" />
                   Privacy & Security
                 </h3>
                 <div className="space-y-2 text-sm text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <motion.div 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="flex items-center gap-2"
+                  >
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                     End-to-end encryption
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  </motion.div>
+                  <motion.div 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.6 }}
+                    className="flex items-center gap-2"
+                  >
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                     Anonymous reporting
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  </motion.div>
+                  <motion.div 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.7 }}
+                    className="flex items-center gap-2"
+                  >
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                     Blockchain security
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  </motion.div>
+                  <motion.div 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.8 }}
+                    className="flex items-center gap-2"
+                  >
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                     No personal data stored
-                  </div>
+                  </motion.div>
                 </div>
               </motion.div>
             </div>

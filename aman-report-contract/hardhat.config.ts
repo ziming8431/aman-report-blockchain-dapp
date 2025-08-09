@@ -9,11 +9,30 @@ import "@oasisprotocol/sapphire-hardhat";
 import "dotenv/config";
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.20",
+  solidity: {
+    version: "0.8.20",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
+    },
+    overrides: {
+      "@openzeppelin/contracts/**/*.sol": {
+        version: "0.8.20",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200
+          }
+        }
+      }
+    }
+  },
   networks: {
     // Configuration for the Oasis Sapphire Testnet
     sapphire_testnet: {
-      url: "https://testnet.sapphire.oasis.dev",
+      url: "https://testnet.sapphire.oasis.io",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       chainId: 23295, // Official Chain ID for Sapphire Testnet
     },

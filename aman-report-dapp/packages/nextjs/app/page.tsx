@@ -4,7 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
 import { RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
-import { useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { getWrappedEthersSigner } from "~~/utils/web3";
+import { Contract } from "ethers";
+import deployedContracts from "~~/contracts/deployedContracts";
 
 type Message = {
   role: "user" | "assistant";
@@ -16,9 +18,11 @@ const Home: NextPage = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [userInput, setUserInput] = useState("");
   const [isLoadingAI, setIsLoadingAI] = useState(false);
+  const [isLoadingBlockchain, setIsLoadingBlockchain] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  const { writeContractAsync, isPending: isLoadingBlockchain } = useScaffoldWriteContract("ConfidentialReporter");
+  // Get contract info for Sapphire Testnet (chain ID 23295)
+  const contractInfo = deployedContracts[23295]?.ConfidentialReporter;
 
   useEffect(() => {
     chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: "smooth" });
@@ -58,16 +62,40 @@ const Home: NextPage = () => {
       alert("Cannot submit an empty report.");
       return;
     }
+    
+    if (!contractInfo) {
+      alert("Contract not found for Sapphire Testnet. Please check the deployment.");
+      return;
+    }
+    
     try {
-      await writeContractAsync({
-        functionName: "submitReport",
-        args: [JSON.stringify(messages)],
-      });
-      alert("Report successfully and securely submitted to the blockchain!");
+      setIsLoadingBlockchain(true);
+      
+      // Use ethers with Sapphire wrapper for guaranteed encryption
+      const signer = await getWrappedEthersSigner();
+      const account = await signer.getAddress();
+      
+      if (contractInfo.address.toLowerCase() === account.toLowerCase()) {
+        throw new Error('Contract address equals your wallet address – check deployment');
+      }
+      
+      const contract = new Contract(contractInfo.address, contractInfo.abi, signer);
+      
+      // Submit the encrypted report
+      const txResp = await contract.submitReport(JSON.stringify(messages));
+      const txHash = txResp.hash;
+      
+      alert(`Report successfully and securely submitted to the blockchain!\nTransaction Hash: ${txHash}\n\nYour transaction is now viewable on the Sapphire Testnet Explorer.\nClick OK to view transaction details.`);
+      
+      // Open block explorer to show transaction details
+      window.open(`https://explorer.oasis.io/testnet/sapphire/tx/${txHash}`, '_blank');
+      
       setMessages([]);
     } catch (error) {
       console.error("Error submitting to blockchain:", error);
-      alert("Failed to submit report. Please ensure your wallet is connected and you have enough funds for gas.");
+      alert("Failed to submit report. Please ensure your wallet is connected to Sapphire Testnet and you have enough funds for gas.");
+    } finally {
+      setIsLoadingBlockchain(false);
     }
   };
 

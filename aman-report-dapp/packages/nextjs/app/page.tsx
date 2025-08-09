@@ -6,6 +6,7 @@ import { useAccount } from "wagmi";
 import { RainbowKitCustomConnectButton, Address } from "~~/components/scaffold-eth";
 import { useScaffoldReadContract, useScaffoldEventHistory } from "~~/hooks/scaffold-eth";
 import { getWrappedEthersSigner } from "~~/utils/web3";
+import { submitGaslessReport, isGaslessAvailable, getGaslessTransactionFee } from "~~/utils/gasless";
 import { Contract } from "ethers";
 import deployedContracts from "~~/contracts/deployedContracts";
 import { motion, AnimatePresence } from "framer-motion";
@@ -530,6 +531,7 @@ const Home: NextPage = () => {
   const [isLoadingBlockchain, setIsLoadingBlockchain] = useState(false);
   const [showChatModal, setShowChatModal] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string>("All");
+  const [useGasless, setUseGasless] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Get unique categories for filter buttons
@@ -603,21 +605,32 @@ const Home: NextPage = () => {
     try {
       setIsLoadingBlockchain(true);
       
-      // Use ethers with Sapphire wrapper for guaranteed encryption
-      const signer = await getWrappedEthersSigner();
-      const account = await signer.getAddress();
+      let txResp;
+      let txHash;
       
-      if (contractInfo.address.toLowerCase() === account.toLowerCase()) {
-        throw new Error('Contract address equals your wallet address – check deployment');
+      if (useGasless && isGaslessAvailable()) {
+        // Submit using gasless transaction
+        txResp = await submitGaslessReport(JSON.stringify(messages));
+        txHash = txResp.hash;
+        
+        alert(`Report successfully submitted using gasless transaction!\nTransaction Hash: ${txHash}\n\nYour gasless transaction is now viewable on the Sapphire Testnet Explorer.\nClick OK to view transaction details.`);
+      } else {
+        // Use regular transaction with gas
+        const signer = await getWrappedEthersSigner();
+        const account = await signer.getAddress();
+        
+        if (contractInfo.address.toLowerCase() === account.toLowerCase()) {
+          throw new Error('Contract address equals your wallet address – check deployment');
+        }
+        
+        const contract = new Contract(contractInfo.address, contractInfo.abi, signer);
+        
+        // Submit the encrypted report
+        txResp = await contract.submitReport(JSON.stringify(messages));
+        txHash = txResp.hash;
+        
+        alert(`Report successfully and securely submitted to the blockchain!\nTransaction Hash: ${txHash}\n\nYour transaction is now viewable on the Sapphire Testnet Explorer.\nClick OK to view transaction details.`);
       }
-      
-      const contract = new Contract(contractInfo.address, contractInfo.abi, signer);
-      
-      // Submit the encrypted report
-      const txResp = await contract.submitReport(JSON.stringify(messages));
-      const txHash = txResp.hash;
-      
-      alert(`Report successfully and securely submitted to the blockchain!\nTransaction Hash: ${txHash}\n\nYour transaction is now viewable on the Sapphire Testnet Explorer.\nClick OK to view transaction details.`);
       
       // Open block explorer to show transaction details
       window.open(`https://explorer.oasis.io/testnet/sapphire/tx/${txHash}`, '_blank');
@@ -625,7 +638,10 @@ const Home: NextPage = () => {
       setMessages([]);
     } catch (error) {
       console.error("Error submitting to blockchain:", error);
-      alert("Failed to submit report. Please ensure your wallet is connected to Sapphire Testnet and you have enough funds for gas.");
+      const errorMessage = useGasless 
+        ? "Failed to submit gasless report. Please ensure gasless service is available and try again."
+        : "Failed to submit report. Please ensure your wallet is connected to Sapphire Testnet and you have enough funds for gas.";
+      alert(errorMessage);
     } finally {
       setIsLoadingBlockchain(false);
     }
@@ -1058,6 +1074,42 @@ const Home: NextPage = () => {
                   </motion.button>
                 </form>
 
+                {/* Gasless Transaction Toggle */}
+                {messages.length > 0 && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 flex items-center justify-center gap-3"
+                  >
+                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20">
+                      <Zap className={`w-4 h-4 ${useGasless ? 'text-yellow-400' : 'text-gray-400'}`} />
+                      <span className="text-sm font-medium text-white">Gasless Transaction</span>
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setUseGasless(!useGasless)}
+                        className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${
+                          useGasless ? 'bg-yellow-400' : 'bg-gray-600'
+                        }`}
+                      >
+                        <motion.div
+                          animate={{ x: useGasless ? 24 : 2 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                          className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-md"
+                        />
+                      </motion.button>
+                      {useGasless && (
+                        <motion.span 
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="text-xs text-yellow-300 font-medium"
+                        >
+                          FREE
+                        </motion.span>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* Submit to Blockchain */}
                 {messages.length > 0 && (
                   <motion.div 
@@ -1075,12 +1127,12 @@ const Home: NextPage = () => {
                       {isLoadingBlockchain ? (
                         <>
                           <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                          Encrypting & Submitting...
+                          {useGasless ? 'Submitting Gasless...' : 'Encrypting & Submitting...'}
                         </>
                       ) : (
                         <>
                           <Zap className="w-5 h-5" />
-                          Finalize & Encrypt Report
+                          {useGasless ? 'Submit Gasless Report' : 'Finalize & Encrypt Report'}
                         </>
                       )}
                     </motion.button>

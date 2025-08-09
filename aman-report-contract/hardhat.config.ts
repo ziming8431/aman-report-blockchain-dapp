@@ -41,8 +41,6 @@ const config: HardhatUserConfig = {
   gasReporter: {
     enabled: false,
   },
-};
-module.exports = {
   sourcify: {
     // Doesn't need an API key
     enabled: true

@@ -17,11 +17,15 @@ contract ConfidentialReporter is Ownable {
     uint256 public totalReportCount;
     mapping(uint256 => mapping(address => bool)) public accessControl;
     mapping(address => bool) public trustedRelayers;
+    
+    // Gasless proxy contract address
+    address public gaslessProxy;
 
     // --- Events ---
     event ReportSubmitted(uint256 indexed reportId, address indexed owner);
     event AccessGranted(uint256 indexed reportId, address indexed owner, address indexed delegate);
     event RelayerStatusChanged(address indexed relayer, bool isTrusted);
+    event GaslessProxyUpdated(address indexed oldProxy, address indexed newProxy);
 
     // --- Modifiers ---
     modifier onlyAuthorized(uint256 _reportId) {
@@ -31,6 +35,15 @@ contract ConfidentialReporter is Ownable {
     }
 
     constructor() Ownable(msg.sender) {}
+    
+    /**
+     * @dev Set the gasless proxy contract address
+     */
+    function setGaslessProxy(address _gaslessProxy) external onlyOwner {
+        address oldProxy = gaslessProxy;
+        gaslessProxy = _gaslessProxy;
+        emit GaslessProxyUpdated(oldProxy, _gaslessProxy);
+    }
 
     // --- Core Functions ---
     function submitReport(string memory _chatLog) public {
@@ -60,5 +73,24 @@ contract ConfidentialReporter is Ownable {
     function setRelayer(address _relayer, bool _isTrusted) public onlyOwner {
         trustedRelayers[_relayer] = _isTrusted;
         emit RelayerStatusChanged(_relayer, _isTrusted);
+    }
+    
+    /**
+     * @dev Submit a report on behalf of a user (gasless transaction)
+     * Can only be called by the gasless proxy contract
+     */
+    function submitReportGasless(address _user, string memory _chatLog) external {
+        require(msg.sender == gaslessProxy, "Only gasless proxy can call this function");
+        require(_user != address(0), "Invalid user address");
+        
+        uint256 reportId = reports.length;
+        reports.push(Report({
+            owner: _user,
+            chatLog: _chatLog,
+            timestamp: block.timestamp
+        }));
+        accessControl[reportId][_user] = true;
+        totalReportCount++;
+        emit ReportSubmitted(reportId, _user);
     }
 }

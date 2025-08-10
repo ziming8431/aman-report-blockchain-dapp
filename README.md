@@ -33,17 +33,27 @@ Sp3akUP is a decentralized application (DApp) that empowers users to submit conf
 
 1.  **Clone the repository:**
     ```bash
-    git clone <your-repo-url>
-    cd Sp3akUP
+    git clone https://github.com/ziming8431/aman-report-blockchain-dapp.git
     ```
 
 2.  **Install contract dependencies:**
     ```bash
     cd aman-report-contract
     yarn install
+    npm hardhat --save-dev typescript
+    npm hardhat --save-dev ts-node
+    ```
+    (+) Add .env file and add your wallet Private Key along with this Sapphire Testnet Url
+    ```
+    SAPPHIRE_TESTNET_URL=https://testnet.sapphire.oasis.io
+    SAPPHIRE_TESTNET_CHAIN_ID=23295
+    ```
+    Then deploy your Smart Contract
+    ```
+    npx hardhat run scripts/deploy.ts --network sapphire_testnet
     ```
 
-3.  **Install DApp dependencies:**
+4.  **Install DApp dependencies:**
     ```bash
     cd ../aman-report-dapp
     yarn install
@@ -55,9 +65,8 @@ Sp3akUP is a decentralized application (DApp) that empowers users to submit conf
 
 From the `aman-report-contract` directory:
 
-- **Compile:** `yarn compile`
-- **Test:** `yarn test`
-- **Deploy:** `yarn deploy`
+- **Compile:** `npx hardhat compile`
+- **Deploy:** `npx hardhat run scripts/deploy.ts --network sapphire_testnet`
 
 #### Frontend DApp
 

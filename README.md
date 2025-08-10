@@ -45,6 +45,7 @@ Sp3akUP is a decentralized application (DApp) that empowers users to submit conf
     ```
     (+) Add .env file and add your wallet Private Key along with this Sapphire Testnet Url
     ```
+    PRIVATE_KEY= <your private key not public one>
     SAPPHIRE_TESTNET_URL=https://testnet.sapphire.oasis.io
     SAPPHIRE_TESTNET_CHAIN_ID=23295
     ```

@@ -80,6 +80,3 @@ Sp3akUP is designed with security as a top priority. Here’s how we protect you
 
 We welcome contributions from the community! Please read our `CONTRIBUTING.md` for details on our code of conduct and the process for submitting pull requests.
 
-## 📄 License
-
-This project is licensed under the MIT License. See the `LICENSE` file for more details.
